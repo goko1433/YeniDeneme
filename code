@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Birikim Takip</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f8;
+            text-align: center;
+            padding: 50px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        #currentAmount {
+            font-size: 48px;
+            color: #27ae60;
+            margin-top: 20px;
+            display: block;
+        }
+        #lastUpdated {
+            margin-top: 10px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Birikim Programı</h1>
+
+    <input type="number" id="startAmount" placeholder="Başlangıç Tutarı (TL)" /><br>
+    <input type="number" id="monthlyIncrease" placeholder="Aylık Birikim (TL)" /><br>
+    <button onclick="startSaving()">Kaydet ve Başlat</button>
+    <button onclick="resetSaving()">Sıfırla</button>
+
+    <span id="currentAmount">-</span>
+    <div id="lastUpdated"></div>
+
+    <script>
+        let timer;
+
+        function startSaving() {
+            const startAmount = parseFloat(document.getElementById('startAmount').value);
+            const monthlyIncrease = parseFloat(document.getElementById('monthlyIncrease').value);
+            const startTime = new Date().getTime();
+
+            localStorage.setItem('startAmount', startAmount);
+            localStorage.setItem('monthlyIncrease', monthlyIncrease);
+            localStorage.setItem('startTime', startTime);
+
+            if (timer) clearInterval(timer);
+            startCounter();
+        }
+
+        function resetSaving() {
+            localStorage.removeItem('startAmount');
+            localStorage.removeItem('monthlyIncrease');
+            localStorage.removeItem('startTime');
+            if (timer) clearInterval(timer);
+            document.getElementById('currentAmount').innerText = '-';
+            document.getElementById('lastUpdated').innerText = '';
+        }
+
+        function startCounter() {
+            const startAmount = parseFloat(localStorage.getItem('startAmount') || 0);
+            const monthlyIncrease = parseFloat(localStorage.getItem('monthlyIncrease') || 0);
+            const startTime = parseInt(localStorage.getItem('startTime') || new Date().getTime());
+
+            const perSecond = monthlyIncrease / (30 * 24 * 60 * 60); // Aylıktan saniyeye
+
+            timer = setInterval(() => {
+                const now = new Date().getTime();
+                const elapsedSeconds = (now - startTime) / 1000;
+                const totalIncrease = elapsedSeconds * perSecond;
+                const currentAmount = startAmount + totalIncrease;
+
+                document.getElementById('currentAmount').innerText = currentAmount.toFixed(2) + ' TL';
+
+                const date = new Date();
+                document.getElementById('lastUpdated').innerText = 'Son güncelleme: ' + date.toLocaleString();
+            }, 100); // 0.1 saniyede bir güncelle
+        }
+
+        // Sayfa her açıldığında başlat
+        if (localStorage.getItem('startAmount')) {
+            startCounter();
+        }
+    </script>
+</body>
+</html>
